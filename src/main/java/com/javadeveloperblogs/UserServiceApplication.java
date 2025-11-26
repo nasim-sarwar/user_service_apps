@@ -1,4 +1,4 @@
-package com.javadeveloperblogs.user_service_apps;
+package com.javadeveloperblogs;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
