@@ -2,6 +2,7 @@ package com.javadeveloperblogs.app.ws.service.impl;
 
 import com.javadeveloperblogs.app.ws.io.entity.UserEntity;
 import com.javadeveloperblogs.app.ws.service.UserService;
+import com.javadeveloperblogs.app.ws.shared.dto.UserDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -64,54 +65,41 @@ import java.util.List;
  * @since 2025
  */
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService{
     /**
-     * @param userId
+     * @param user
      * @return
      */
     @Override
-    public UserResponseDto getUserByUserId(String userId) {
+    public UserDto createUser(UserDto user) {
         return null;
     }
 
     /**
-     * @param userRequest
+     * @param email
      * @return
      */
     @Override
-    public UserResponseDto createUser(CreateUserRequestDto userRequest) {
-        UserEntity userEntity = new UserEntity();
-
-        return null;
-    }
-
-    /**
-     * @param page
-     * @param limit
-     * @return
-     */
-    @Override
-    public List<UserResponseDto> getUsers(int page, int limit) {
-        return List.of();
-    }
-
-    /**
-     * @param userId
-     * @param userRequest
-     * @return
-     */
-    @Override
-    public UserResponseDto updateUser(String userId, UpdateUserRequestDto userRequest) {
+    public UserDto getUser(String email) {
         return null;
     }
 
     /**
      * @param userId
-     * @param userRequest
      * @return
      */
     @Override
-    public UserResponseDto partialUpdateUser(String userId, UpdateUserRequestDto userRequest) {
+    public UserDto getUserByUserId(String userId) {
+        return null;
+    }
+
+    /**
+     * @param userId
+     * @param user
+     * @return
+     */
+    @Override
+    public UserDto updateUser(String userId, UserDto user) {
         return null;
     }
 
@@ -124,66 +112,13 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * @param loginRequest
+     * @param page
+     * @param limit
      * @return
      */
     @Override
-    public UserResponseDto loginUser(LoginRequestDto loginRequest) {
-        return null;
-    }
-
-    /**
-     * @param token
-     */
-    @Override
-    public void logoutUser(String token) {
-
-    }
-
-    /**
-     * @param refreshRequest
-     * @return
-     */
-    @Override
-    public TokenResponseDto refreshToken(RefreshTokenRequestDto refreshRequest) {
-        return null;
-    }
-
-    /**
-     * @param request
-     * @return
-     */
-    @Override
-    public MessageResponseDto forgotPassword(ForgotPasswordRequestDto request) {
-        return null;
-    }
-
-    /**
-     * @param request
-     * @return
-     */
-    @Override
-    public MessageResponseDto resetPassword(ResetPasswordRequestDto request) {
-        return null;
-    }
-
-    /**
-     * @param userId
-     * @param request
-     * @return
-     */
-    @Override
-    public MessageResponseDto changePassword(String userId, ChangePasswordRequestDto request) {
-        return null;
-    }
-
-    /**
-     * @param request
-     * @return
-     */
-    @Override
-    public MessageResponseDto resendVerificationEmail(ResendVerificationRequestDto request) {
-        return null;
+    public List<UserDto> getUsers(int page, int limit) {
+        return List.of();
     }
 
     /**
@@ -191,140 +126,26 @@ public class UserServiceImpl implements UserService {
      * @return
      */
     @Override
-    public MessageResponseDto verifyEmail(String token) {
-        return null;
+    public boolean verifyEmailToken(String token) {
+        return false;
     }
 
     /**
-     * @param userId
-     * @return
-     */
-    @Override
-    public UserResponseDto verifyEmailManually(String userId) {
-        return null;
-    }
-
-    /**
-     * @param userId
-     * @return
-     */
-    @Override
-    public UserResponseDto getUserProfile(String userId) {
-        return null;
-    }
-
-    /**
-     * @param userId
-     * @param profileRequest
-     * @return
-     */
-    @Override
-    public UserResponseDto updateUserProfile(String userId, UpdateUserRequestDto profileRequest) {
-        return null;
-    }
-
-    /**
-     * @param token
-     * @return
-     */
-    @Override
-    public UserResponseDto getCurrentUser(String token) {
-        return null;
-    }
-
-    /**
-     * @param firstName
-     * @param lastName
      * @param email
-     * @param q
-     * @param page
-     * @param limit
      * @return
      */
     @Override
-    public List<UserResponseDto> searchUsers(String firstName, String lastName, String email, String q, int page, int limit) {
-        return List.of();
-    }
-
-    /**
-     * @param verified
-     * @param page
-     * @param limit
-     * @return
-     */
-    @Override
-    public List<UserResponseDto> getUsersByVerificationStatus(Boolean verified, int page, int limit) {
-        return List.of();
-    }
-
-    /**
-     * @return
-     */
-    @Override
-    public CountResponseDto getUserCount() {
-        return null;
-    }
-
-    /**
-     * @return
-     */
-    @Override
-    public UserStatsResponseDto getUserStats() {
-        return null;
-    }
-
-    /**
-     * @param userId
-     * @param statusRequest
-     * @return
-     */
-    @Override
-    public UserResponseDto updateUserStatus(String userId, UserStatusRequestDto statusRequest) {
-        return null;
-    }
-
-    /**
-     * @param users
-     * @return
-     */
-    @Override
-    public BulkUserResponseDto createUsersBulk(List<CreateUserRequestDto> users) {
-        return null;
-    }
-
-    /**
-     * @param userIds
-     * @return
-     */
-    @Override
-    public MessageResponseDto deleteUsersBulk(List<String> userIds) {
-        return null;
-    }
-
-    /**
-     * @param userId
-     * @return
-     */
-    @Override
-    public VerificationStatusResponseDto getVerificationStatus(String userId) {
-        return null;
-    }
-
-    /**
-     * @param userId
-     * @param request
-     * @return
-     */
-    @Override
-    public UserResponseDto updateEmail(String userId, UpdateEmailRequestDto request) {
-        return null;
+    public boolean requestPasswordReset(String email) {
+        return false;
     }
 
     /**
      * @param token
+     * @param password
+     * @return
      */
     @Override
-    public void deleteCurrentUser(String token) {
-
+    public boolean resetPassword(String token, String password) {
+        return false;
     }
 }
