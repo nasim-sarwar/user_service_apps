@@ -1,8 +1,7 @@
 package com.javadeveloperblogs.app.ws.service.impl;
 
+import com.javadeveloperblogs.app.ws.io.entity.UserEntity;
 import com.javadeveloperblogs.app.ws.service.UserService;
-import com.javadeveloperblogs.app.ws.ui.model.request.*;
-import com.javadeveloperblogs.app.ws.ui.model.response.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -81,6 +80,8 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserResponseDto createUser(CreateUserRequestDto userRequest) {
+        UserEntity userEntity = new UserEntity();
+
         return null;
     }
 

@@ -1,15 +1,23 @@
 package com.javadeveloperblogs.app.ws.ui.controller;
 
+import com.javadeveloperblogs.app.ws.service.AddressService;
 import com.javadeveloperblogs.app.ws.service.UserService;
+import com.javadeveloperblogs.app.ws.shared.dto.AddressDTO;
+import com.javadeveloperblogs.app.ws.shared.dto.UserDto;
 import com.javadeveloperblogs.app.ws.ui.model.request.*;
 import com.javadeveloperblogs.app.ws.ui.model.response.*;
-import jakarta.validation.Valid;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+
 /**
  * REST controller responsible for handling all user-related API operations.
  * <p>
@@ -40,312 +48,228 @@ import java.util.List;
  * @since 2025
  */
 @RestController
-@RequestMapping("/users")    // http://localhost:8080/users
+@RequestMapping("/users") // http://localhost:8080/users
+//@CrossOrigin(origins= {"http://localhost:8083", "http://localhost:8084"})
 public class UserController {
 
     @Autowired
-    private UserService userService;
+    UserService userService;
 
-    /**
-     * Create a new user (Registration)
-     * POST /users
-     */
-    @PostMapping
-    public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody CreateUserRequestDto userRequest) {
-        UserResponseDto createdUser = userService.createUser(userRequest);
-        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+    @Autowired
+    AddressService addressService;
+
+    @Autowired
+    AddressService addressesService;
+
+    /*@PostAuthorize("hasRole('ADMIN') or returnObject.userId == principal.userId")
+    @ApiOperation(value="The Get User Details Web Service Endpoint",
+            notes="${userController.GetUser.ApiOperation.Notes}")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="${userController.authorizationHeader.description}", paramType="header")
+    })*/
+    @GetMapping(path = "/{id}", produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
+    public UserRest getUser(@PathVariable String id) {
+        UserRest returnValue = new UserRest();
+
+        UserDto userDto = userService.getUserByUserId(id);
+        ModelMapper modelMapper = new ModelMapper();
+        returnValue = modelMapper.map(userDto, UserRest.class);
+
+        return returnValue;
     }
 
-    /**
-     * Get user by userId
-     * GET /users/{userId}
-     */
-    @GetMapping("/{userId}")
-    public ResponseEntity<UserResponseDto> getUserByUserId(@PathVariable String userId) {
-        UserResponseDto user = userService.getUserByUserId(userId);
-        return ResponseEntity.ok(user);
+    @PostMapping(consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE }, produces = {
+            MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
+    public UserRest createUser(@RequestBody UserDetailsRequestModel userDetails) throws Exception {
+        UserRest returnValue = new UserRest();
+
+        // UserDto userDto = new UserDto();
+        // BeanUtils.copyProperties(userDetails, userDto);
+        ModelMapper modelMapper = new ModelMapper();
+        UserDto userDto = modelMapper.map(userDetails, UserDto.class);
+      //  userDto.setRoles(new HashSet<>(Arrays.asList(Roles.ROLE_USER.name())));
+
+        UserDto createdUser = userService.createUser(userDto);
+        returnValue = modelMapper.map(createdUser, UserRest.class);
+
+        return returnValue;
     }
 
-    /**
-     * Get all users with pagination
-     * GET /users?page=0&limit=10
-     */
-    @GetMapping
-    public ResponseEntity<List<UserResponseDto>> getUsers(
-            @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "limit", defaultValue = "25") int limit) {
-        List<UserResponseDto> users = userService.getUsers(page, limit);
-        return ResponseEntity.ok(users);
+    @PutMapping(path = "/{id}", consumes = { MediaType.APPLICATION_XML_VALUE,
+            MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_XML_VALUE,
+            MediaType.APPLICATION_JSON_VALUE })
+   /* @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="${userController.authorizationHeader.description}", paramType="header")
+    })*/
+    public UserRest updateUser(@PathVariable String id, @RequestBody UserDetailsRequestModel userDetails) {
+        UserRest returnValue = new UserRest();
+
+        UserDto userDto = new UserDto();
+        userDto = new ModelMapper().map(userDetails, UserDto.class);
+
+        UserDto updateUser = userService.updateUser(id, userDto);
+        returnValue = new ModelMapper().map(updateUser, UserRest.class);
+
+        return returnValue;
     }
 
-    /**
-     * Update user details
-     * PUT /users/{userId}
-     */
-    @PutMapping("/{userId}")
-    public ResponseEntity<UserResponseDto> updateUser(
-            @PathVariable String userId,
-            @Valid @RequestBody UpdateUserRequestDto userRequest) {
-        UserResponseDto updatedUser = userService.updateUser(userId, userRequest);
-        return ResponseEntity.ok(updatedUser);
+   // @PreAuthorize("hasRole('ROLE_ADMIN') or #id == principal.userId")
+    //@PreAuthorize("hasAuthority('DELETE_AUTHORITY')")
+    //@Secured("ROLE_ADMIN")
+    @DeleteMapping(path = "/{id}", produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
+    /*@ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="${userController.authorizationHeader.description}", paramType="header")
+    })*/
+    public OperationStatusModel deleteUser(@PathVariable String id) {
+        OperationStatusModel returnValue = new OperationStatusModel();
+        returnValue.setOperationName(RequestOperationName.DELETE.name());
+
+        userService.deleteUser(id);
+
+        returnValue.setOperationResult(RequestOperationStatus.SUCCESS.name());
+        return returnValue;
     }
 
-    /**
-     * Partial update of user
-     * PATCH /users/{userId}
-     */
-    @PatchMapping("/{userId}")
-    public ResponseEntity<UserResponseDto> partialUpdateUser(
-            @PathVariable String userId,
-            @RequestBody UpdateUserRequestDto userRequest) {
-        UserResponseDto updatedUser = userService.partialUpdateUser(userId, userRequest);
-        return ResponseEntity.ok(updatedUser);
+   /* @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="${userController.authorizationHeader.description}", paramType="header")
+    })*/
+    @GetMapping(produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
+    public List<UserRest> getUsers(@RequestParam(value = "page", defaultValue = "0") int page,
+                                   @RequestParam(value = "limit", defaultValue = "2") int limit) {
+        List<UserRest> returnValue = new ArrayList<>();
+
+        List<UserDto> users = userService.getUsers(page, limit);
+
+        Type listType = new TypeToken<List<UserRest>>() {
+        }.getType();
+        returnValue = new ModelMapper().map(users, listType);
+
+		/*for (UserDto userDto : users) {
+			UserRest userModel = new UserRest();
+			BeanUtils.copyProperties(userDto, userModel);
+			returnValue.add(userModel);
+		}*/
+
+        return returnValue;
     }
 
-    /**
-     * Delete user
-     * DELETE /users/{userId}
-     */
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable String userId) {
-        userService.deleteUser(userId);
-        return ResponseEntity.noContent().build();
+    // http://localhost:8080/mobile-app-ws/users/jfhdjeufhdhdj/addressses
+   /* @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="${userController.authorizationHeader.description}", paramType="header")
+    })*/
+    @GetMapping(path = "/{id}/addresses", produces = { MediaType.APPLICATION_XML_VALUE,
+            MediaType.APPLICATION_JSON_VALUE, "application/hal+json" })
+    public void getUserAddresses(@PathVariable String id) {
+        List<AddressesRest> addressesListRestModel = new ArrayList<>();
+
+        List<AddressDTO> addressesDTO = addressesService.getAddresses(id);
+
+        if (addressesDTO != null && !addressesDTO.isEmpty()) {
+            Type listType = new TypeToken<List<AddressesRest>>() {
+            }.getType();
+            addressesListRestModel = new ModelMapper().map(addressesDTO, listType);
+
+            /*for (AddressesRest addressRest : addressesListRestModel) {
+                Link addressLink = linkTo(methodOn(UserController.class).getUserAddress(id, addressRest.getAddressId()))
+                        .withSelfRel();
+                addressRest.add(addressLink);
+
+                Link userLink = linkTo(methodOn(UserController.class).getUser(id)).withRel("user");
+                addressRest.add(userLink);
+            }*/
+        }
+
+       // return new Resources<>(addressesListRestModel);
     }
 
-    /**
-     * User login
-     * POST /users/login
-     */
-    @PostMapping("/login")
-    public ResponseEntity<UserResponseDto> loginUser(@Valid @RequestBody LoginRequestDto loginRequest) {
-        UserResponseDto userResponse = userService.loginUser(loginRequest);
-        return ResponseEntity.ok(userResponse);
+    /*@ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="${userController.authorizationHeader.description}", paramType="header")
+    })*/
+    /*@GetMapping(path = "/{userId}/addresses/{addressId}", produces = { MediaType.APPLICATION_JSON_VALUE,
+            MediaType.APPLICATION_XML_VALUE, "application/hal+json" })
+    public Resource<AddressesRest> getUserAddress(@PathVariable String userId, @PathVariable String addressId) {
+
+        AddressDTO addressesDto = addressService.getAddress(addressId);
+
+        ModelMapper modelMapper = new ModelMapper();
+        Link addressLink = linkTo(methodOn(UserController.class).getUserAddress(userId, addressId)).withSelfRel();
+        Link userLink = linkTo(UserController.class).slash(userId).withRel("user");
+        Link addressesLink = linkTo(methodOn(UserController.class).getUserAddresses(userId)).withRel("addresses");
+
+        AddressesRest addressesRestModel = modelMapper.map(addressesDto, AddressesRest.class);
+
+        addressesRestModel.add(addressLink);
+        addressesRestModel.add(userLink);
+        addressesRestModel.add(addressesLink);
+
+        return new Resource<>(addressesRestModel);
+    }*/
+
+    /*
+     * http://localhost:8080/mobile-app-ws/users/email-verification?token=sdfsdf
+     * */
+    @GetMapping(path = "/email-verification", produces = { MediaType.APPLICATION_JSON_VALUE,
+            MediaType.APPLICATION_XML_VALUE })
+    public OperationStatusModel verifyEmailToken(@RequestParam(value = "token") String token) {
+
+        OperationStatusModel returnValue = new OperationStatusModel();
+        returnValue.setOperationName(RequestOperationName.VERIFY_EMAIL.name());
+
+        boolean isVerified = userService.verifyEmailToken(token);
+
+        if(isVerified)
+        {
+            returnValue.setOperationResult(RequestOperationStatus.SUCCESS.name());
+        } else {
+            returnValue.setOperationResult(RequestOperationStatus.ERROR.name());
+        }
+
+        return returnValue;
     }
 
-    /**
-     * User logout
-     * POST /users/logout
-     */
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logoutUser(@RequestHeader("Authorization") String token) {
-        userService.logoutUser(token);
-        return ResponseEntity.ok().build();
+    /*
+     * http://localhost:8080/mobile-app-ws/users/password-reset-request
+     * */
+    @PostMapping(path = "/password-reset-request",
+            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE},
+            consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}
+    )
+    public OperationStatusModel requestReset(@RequestBody PasswordResetRequestModel passwordResetRequestModel) {
+        OperationStatusModel returnValue = new OperationStatusModel();
+
+        boolean operationResult = userService.requestPasswordReset(passwordResetRequestModel.getEmail());
+
+        returnValue.setOperationName(RequestOperationName.REQUEST_PASSWORD_RESET.name());
+        returnValue.setOperationResult(RequestOperationStatus.ERROR.name());
+
+        if(operationResult)
+        {
+            returnValue.setOperationResult(RequestOperationStatus.SUCCESS.name());
+        }
+
+        return returnValue;
     }
 
-    /**
-     * Refresh authentication token
-     * POST /users/refresh-token
-     */
-    @PostMapping("/refresh-token")
-    public ResponseEntity<TokenResponseDto> refreshToken(@RequestBody RefreshTokenRequestDto refreshRequest) {
-        TokenResponseDto tokenResponse = userService.refreshToken(refreshRequest);
-        return ResponseEntity.ok(tokenResponse);
-    }
 
-    /**
-     * Request password reset
-     * POST /users/forgot-password
-     */
-    @PostMapping("/forgot-password")
-    public ResponseEntity<MessageResponseDto> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDto request) {
-        MessageResponseDto response = userService.forgotPassword(request);
-        return ResponseEntity.ok(response);
-    }
 
-    /**
-     * Reset password with token
-     * PUT /users/reset-password
-     */
-    @PutMapping("/reset-password")
-    public ResponseEntity<MessageResponseDto> resetPassword(@Valid @RequestBody ResetPasswordRequestDto request) {
-        MessageResponseDto response = userService.resetPassword(request);
-        return ResponseEntity.ok(response);
-    }
+    @PostMapping(path = "/password-reset",
+            consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE}
+    )
+    public OperationStatusModel resetPassword(@RequestBody PasswordResetModel passwordResetModel) {
+        OperationStatusModel returnValue = new OperationStatusModel();
 
-    /**
-     * Change password (authenticated user)
-     * PUT /users/{userId}/password
-     */
-    @PutMapping("/{userId}/password")
-    public ResponseEntity<MessageResponseDto> changePassword(
-            @PathVariable String userId,
-            @Valid @RequestBody ChangePasswordRequestDto request) {
-        MessageResponseDto response = userService.changePassword(userId, request);
-        return ResponseEntity.ok(response);
-    }
+        boolean operationResult = userService.resetPassword(
+                passwordResetModel.getToken(),
+                passwordResetModel.getPassword());
 
-    /**
-     * Resend verification email
-     * POST /users/resend-verification
-     */
-    @PostMapping("/resend-verification")
-    public ResponseEntity<MessageResponseDto> resendVerificationEmail(@Valid @RequestBody ResendVerificationRequestDto request) {
-        MessageResponseDto response = userService.resendVerificationEmail(request);
-        return ResponseEntity.ok(response);
-    }
+        returnValue.setOperationName(RequestOperationName.PASSWORD_RESET.name());
+        returnValue.setOperationResult(RequestOperationStatus.ERROR.name());
 
-    /**
-     * Verify email with token
-     * GET /users/verify-email/{token}
-     */
-    @GetMapping("/verify-email/{token}")
-    public ResponseEntity<MessageResponseDto> verifyEmail(@PathVariable String token) {
-        MessageResponseDto response = userService.verifyEmail(token);
-        return ResponseEntity.ok(response);
-    }
+        if(operationResult)
+        {
+            returnValue.setOperationResult(RequestOperationStatus.SUCCESS.name());
+        }
 
-    /**
-     * Manual email verification (admin only)
-     * PUT /users/{userId}/verify-email
-     */
-    @PutMapping("/{userId}/verify-email")
-    public ResponseEntity<UserResponseDto> verifyEmailManually(@PathVariable String userId) {
-        UserResponseDto user = userService.verifyEmailManually(userId);
-        return ResponseEntity.ok(user);
-    }
-
-    /**
-     * Get user profile
-     * GET /users/{userId}/profile
-     */
-    @GetMapping("/{userId}/profile")
-    public ResponseEntity<UserResponseDto> getUserProfile(@PathVariable String userId) {
-        UserResponseDto userProfile = userService.getUserProfile(userId);
-        return ResponseEntity.ok(userProfile);
-    }
-
-    /**
-     * Update user profile
-     * PUT /users/{userId}/profile
-     */
-    @PutMapping("/{userId}/profile")
-    public ResponseEntity<UserResponseDto> updateUserProfile(
-            @PathVariable String userId,
-            @Valid @RequestBody UpdateUserRequestDto profileRequest) {
-        UserResponseDto updatedProfile = userService.updateUserProfile(userId, profileRequest);
-        return ResponseEntity.ok(updatedProfile);
-    }
-
-    /**
-     * Get current authenticated user
-     * GET /users/me
-     */
-    @GetMapping("/me")
-    public ResponseEntity<UserResponseDto> getCurrentUser(@RequestHeader("Authorization") String token) {
-        UserResponseDto user = userService.getCurrentUser(token);
-        return ResponseEntity.ok(user);
-    }
-
-    /**
-     * Search users by first name
-     * GET /users/search?firstName={name}
-     */
-    @GetMapping("/search")
-    public ResponseEntity<List<UserResponseDto>> searchUsers(
-            @RequestParam(required = false) String firstName,
-            @RequestParam(required = false) String lastName,
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) String q,
-            @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "limit", defaultValue = "25") int limit) {
-        List<UserResponseDto> users = userService.searchUsers(firstName, lastName, email, q, page, limit);
-        return ResponseEntity.ok(users);
-    }
-
-    /**
-     * Filter users by verification status
-     * GET /users?verified={true/false}
-     */
-    @GetMapping(params = "verified")
-    public ResponseEntity<List<UserResponseDto>> getUsersByVerificationStatus(
-            @RequestParam Boolean verified,
-            @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "limit", defaultValue = "25") int limit) {
-        List<UserResponseDto> users = userService.getUsersByVerificationStatus(verified, page, limit);
-        return ResponseEntity.ok(users);
-    }
-
-    /**
-     * Get total user count
-     * GET /users/count
-     */
-    @GetMapping("/count")
-    public ResponseEntity<CountResponseDto> getUserCount() {
-        CountResponseDto count = userService.getUserCount();
-        return ResponseEntity.ok(count);
-    }
-
-    /**
-     * Get user statistics
-     * GET /users/stats
-     */
-    @GetMapping("/stats")
-    public ResponseEntity<UserStatsResponseDto> getUserStats() {
-        UserStatsResponseDto stats = userService.getUserStats();
-        return ResponseEntity.ok(stats);
-    }
-
-    /**
-     * Enable/disable user account
-     * PUT /users/{userId}/status
-     */
-    @PutMapping("/{userId}/status")
-    public ResponseEntity<UserResponseDto> updateUserStatus(
-            @PathVariable String userId,
-            @Valid @RequestBody UserStatusRequestDto statusRequest) {
-        UserResponseDto user = userService.updateUserStatus(userId, statusRequest);
-        return ResponseEntity.ok(user);
-    }
-
-    /**
-     * Bulk user creation
-     * POST /users/bulk
-     */
-    @PostMapping("/bulk")
-    public ResponseEntity<BulkUserResponseDto> createUsersBulk(@Valid @RequestBody List<CreateUserRequestDto> users) {
-        BulkUserResponseDto response = userService.createUsersBulk(users);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
-    }
-
-    /**
-     * Bulk user deletion
-     * DELETE /users/bulk
-     */
-    @DeleteMapping("/bulk")
-    public ResponseEntity<MessageResponseDto> deleteUsersBulk(@RequestBody List<String> userIds) {
-        MessageResponseDto response = userService.deleteUsersBulk(userIds);
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Check verification status
-     * GET /users/{userId}/verification-status
-     */
-    @GetMapping("/{userId}/verification-status")
-    public ResponseEntity<VerificationStatusResponseDto> getVerificationStatus(@PathVariable String userId) {
-        VerificationStatusResponseDto status = userService.getVerificationStatus(userId);
-        return ResponseEntity.ok(status);
-    }
-
-    /**
-     * Update email (triggers re-verification)
-     * PUT /users/{userId}/email
-     */
-    @PutMapping("/{userId}/email")
-    public ResponseEntity<UserResponseDto> updateEmail(
-            @PathVariable String userId,
-            @Valid @RequestBody UpdateEmailRequestDto request) {
-        UserResponseDto user = userService.updateEmail(userId, request);
-        return ResponseEntity.ok(user);
-    }
-
-    /**
-     * Self-deletion (soft delete)
-     * DELETE /users/me
-     */
-    @DeleteMapping("/me")
-    public ResponseEntity<Void> deleteCurrentUser(@RequestHeader("Authorization") String token) {
-        userService.deleteCurrentUser(token);
-        return ResponseEntity.noContent().build();
+        return returnValue;
     }
 }
