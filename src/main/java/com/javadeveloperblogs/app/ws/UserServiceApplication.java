@@ -1,4 +1,4 @@
-package com.javadeveloperblogs;
+package com.javadeveloperblogs.app.ws;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,7 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  *
  * @author Nasim Sarwar
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 @SpringBootApplication
 public class UserServiceApplication {
