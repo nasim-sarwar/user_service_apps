@@ -2,124 +2,190 @@
 
 # E-commerce web service
 # Use a professional style with clear labeled components, minimal colors, and cloud-native design.**
+```mermaid
+erDiagram
+    %% User Management
+    USERS {
+        int user_id PK
+        string email UK
+        string password_hash
+        string first_name
+        string last_name
+        string phone
+        datetime created_at
+        datetime updated_at
+        enum status "active, inactive, suspended"
+    }
 
-flowchart TB
+    USER_ADDRESSES {
+        int address_id PK
+        int user_id FK
+        string address_line1
+        string address_line2
+        string city
+        string state
+        string postal_code
+        string country
+        enum address_type "billing, shipping"
+        boolean is_default
+    }
 
-%% =========================
-%% Client Layer
-%% =========================
-subgraph Client_Layer["Client Layer"]
-Web[Web Browser (React.js)]
-Mobile[Mobile App (React Native)]
-end
+    %% Product Catalog
+    CATEGORIES {
+        int category_id PK
+        string name
+        string description
+        int parent_category_id FK
+        string slug UK
+    }
 
-%% =========================
-%% Edge & Access Layer
-%% =========================
-subgraph Edge_Layer["Edge & Access Layer"]
-CDN[CDN - Static Assets]
-LB[Load Balancer]
-APIGW[API Gateway - Routing, Auth, Rate Limiting]
-WAF[WAF Firewall]
-end
+    PRODUCTS {
+        int product_id PK
+        int category_id FK
+        string name
+        string description
+        text long_description
+        decimal price
+        decimal sale_price
+        string sku UK
+        int stock_quantity
+        string image_url
+        enum status "active, inactive, out_of_stock"
+        datetime created_at
+        datetime updated_at
+    }
 
-%% =========================
-%% Microservices Layer
-%% =========================
-subgraph Microservices["Microservices Layer"]
-UserSvc[User Service - Signup, Login, Profile]
-ProductSvc[Product Service - Catalog, Search, Inventory]
-OrderSvc[Order Service - Cart, Checkout, Payments]
-PaymentSvc[Payment Service - Stripe / PayPal]
-NotifySvc[Notification Service - Email, SMS]
-ReviewSvc[Review & Ratings Service]
-AnalyticsSvc[Analytics Service]
-end
+    PRODUCT_IMAGES {
+        int image_id PK
+        int product_id FK
+        string image_url
+        int display_order
+        boolean is_primary
+    }
 
-%% =========================
-%% Data Layer
-%% =========================
-subgraph Data_Layer["Data Layer"]
-UserDB[(User DB - PostgreSQL / RDS)]
-ProductDB[(Product DB - NoSQL)]
-OrderDB[(Order DB - MySQL / PostgreSQL)]
-Cache[(Cache - Redis)]
-ObjectStore[(Object Storage - AWS S3)]
-end
+    PRODUCT_REVIEWS {
+        int review_id PK
+        int product_id FK
+        int user_id FK
+        int rating
+        string title
+        text review_text
+        datetime created_at
+        enum status "pending, approved, rejected"
+    }
 
-%% =========================
-%% Messaging Layer
-%% =========================
-subgraph Messaging["Messaging Layer"]
-MQ[Message Queue - Kafka / SQS]
-end
+    %% Shopping & Orders
+    SHOPPING_CART {
+        int cart_id PK
+        int user_id FK
+        datetime created_at
+        datetime updated_at
+    }
 
-%% =========================
-%% External Integrations
-%% =========================
-subgraph External["External Integrations"]
-Stripe[Payment Gateway - Stripe / PayPal]
-Email[Email Provider - SES / SendGrid]
-SMS[SMS Provider - Twilio]
-end
+    CART_ITEMS {
+        int cart_item_id PK
+        int cart_id FK
+        int product_id FK
+        int quantity
+        decimal unit_price
+        datetime added_at
+    }
 
-%% =========================
-%% Infrastructure
-%% =========================
-subgraph Infra["Infrastructure"]
-K8s[Container Orchestration - Kubernetes / ECS]
-Mesh[Service Mesh - Optional]
-IAM[IAM Roles]
-KMS[Encryption - KMS]
-end
+    ORDERS {
+        int order_id PK
+        int user_id FK
+        string order_number UK
+        decimal subtotal
+        decimal tax_amount
+        decimal shipping_cost
+        decimal total_amount
+        enum status "pending, processing, shipped, delivered, cancelled"
+        datetime order_date
+        datetime shipped_date
+        datetime delivered_date
+    }
 
-%% =========================
-%% Monitoring & Logging
-%% =========================
-subgraph Observability["Monitoring & Logging"]
-Metrics[CloudWatch / Prometheus]
-Logs[Centralized Logs - ELK Stack]
-end
+    ORDER_ITEMS {
+        int order_item_id PK
+        int order_id FK
+        int product_id FK
+        int quantity
+        decimal unit_price
+        decimal total_price
+    }
 
-%% =========================
-%% Connections
-%% =========================
-Web --> CDN --> LB
-Mobile --> LB
-LB --> WAF --> APIGW
+    SHIPPING_DETAILS {
+        int shipping_id PK
+        int order_id FK
+        string recipient_name
+        string address_line1
+        string address_line2
+        string city
+        string state
+        string postal_code
+        string country
+        string tracking_number
+        string carrier
+    }
 
-APIGW --> UserSvc
-APIGW --> ProductSvc
-APIGW --> OrderSvc
-APIGW --> ReviewSvc
-APIGW --> AnalyticsSvc
+    %% Payments
+    PAYMENTS {
+        int payment_id PK
+        int order_id FK
+        decimal amount
+        enum payment_method "credit_card, paypal, stripe"
+        string transaction_id UK
+        enum status "pending, completed, failed, refunded"
+        datetime payment_date
+        string payment_gateway
+    }
 
-OrderSvc --> PaymentSvc
-OrderSvc --> MQ
-MQ --> NotifySvc
+    %% Notifications
+    NOTIFICATIONS {
+        int notification_id PK
+        int user_id FK
+        enum type "email, sms, push"
+        string subject
+        text message
+        enum status "pending, sent, failed"
+        datetime created_at
+        datetime sent_at
+    }
 
-UserSvc --> UserDB
-ProductSvc --> ProductDB
-OrderSvc --> OrderDB
+    %% Analytics
+    ANALYTICS_EVENTS {
+        int event_id PK
+        int user_id FK
+        string event_type
+        string event_data
+        datetime event_timestamp
+        string session_id
+        string ip_address
+    }
 
-UserSvc --> Cache
-ProductSvc --> Cache
-OrderSvc --> Cache
+    %% Relationships
+    USERS ||--o{ USER_ADDRESSES : has
+    USERS ||--o{ SHOPPING_CART : owns
+    USERS ||--o{ ORDERS : places
+    USERS ||--o{ PRODUCT_REVIEWS : writes
+    USERS ||--o{ NOTIFICATIONS : receives
+    USERS ||--o{ ANALYTICS_EVENTS : generates
 
-ProductSvc --> ObjectStore
+    CATEGORIES ||--o{ CATEGORIES : "has subcategories"
+    CATEGORIES ||--o{ PRODUCTS : contains
 
-PaymentSvc --> Stripe
-NotifySvc --> Email
-NotifySvc --> SMS
+    PRODUCTS ||--o{ PRODUCT_IMAGES : has
+    PRODUCTS ||--o{ PRODUCT_REVIEWS : receives
+    PRODUCTS ||--o{ CART_ITEMS : "added to"
+    PRODUCTS ||--o{ ORDER_ITEMS : "ordered as"
 
-APIGW --> IAM
-K8s --> IAM
-Data_Layer --> KMS
+    SHOPPING_CART ||--o{ CART_ITEMS : contains
 
-UserSvc -.-> Metrics
-ProductSvc -.-> Metrics
-OrderSvc -.-> Metrics
-PaymentSvc -.-> Logs
+    ORDERS ||--o{ ORDER_ITEMS : contains
+    ORDERS ||--|| SHIPPING_DETAILS : has
+    ORDERS ||--o{ PAYMENTS : "paid by"
+
+```
 
 ```mermaid
 erDiagram
