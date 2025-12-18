@@ -1,4 +1,6 @@
 # E-commerce web service
+![User Management ER Diagram](https://raw.githubusercontent.com/nasim-sarwar/user_service_apps/user_managment_v1/diagram-export-11-12-2025-08_05_44.png)
+
 ```mermaid
 erDiagram
     %% User Management
