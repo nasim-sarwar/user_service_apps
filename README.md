@@ -1,7 +1,4 @@
-# user_service_apps
-
 # E-commerce web service
-# Use a professional style with clear labeled components, minimal colors, and cloud-native design.**
 ```mermaid
 erDiagram
     %% User Management
@@ -187,6 +184,8 @@ erDiagram
 
 ```
 
+
+# User Service Apps – Entity Relationship Diagram
 ```mermaid
 erDiagram
 direction TB
