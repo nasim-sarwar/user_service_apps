@@ -4,92 +4,123 @@
 # Use a professional style with clear labeled components, minimal colors, and cloud-native design.**
 
 ```mermaid
-**Include the following layers and components:**
+flowchart TB
+    %% =========================
+    %% Client Layer
+    %% =========================
+    subgraph Client_Layer["Client Layer"]
+        Web[Web Browser\n(React.js)]
+        Mobile[Mobile App\n(React Native)]
+    end
 
-**1. Client Layer:**
+    %% =========================
+    %% Edge & Access
+    %% =========================
+    subgraph Edge_Layer["Edge & Access Layer"]
+        CDN[CDN\nStatic Assets]
+        LB[Load Balancer]
+        APIGW[API Gateway\nRouting • Auth • Rate Limiting]
+        WAF[WAF Firewall]
+    end
 
-** - Web Browser (React.js)**
+    %% =========================
+    %% Microservices Layer
+    %% =========================
+    subgraph Microservices["Microservices Layer"]
+        UserSvc[User Service\nSignup • Login • Profile]
+        ProductSvc[Product Service\nCatalog • Search • Inventory]
+        OrderSvc[Order Service\nCart • Checkout • Payments]
+        PaymentSvc[Payment Service\nStripe / PayPal]
+        NotifySvc[Notification Service\nEmail • SMS]
+        ReviewSvc[Review & Ratings Service]
+        AnalyticsSvc[Analytics Service]
+    end
 
-** - Mobile App (React Native)**
+    %% =========================
+    %% Data Layer
+    %% =========================
+    subgraph Data_Layer["Data Layer"]
+        UserDB[(User DB\nPostgreSQL / RDS)]
+        ProductDB[(Product DB\nNoSQL)]
+        OrderDB[(Order DB\nMySQL / PostgreSQL)]
+        Cache[(Cache\nRedis)]
+        ObjectStore[(Object Storage\nAWS S3)]
+    end
 
-**2. API Gateway:**
+    %% =========================
+    %% Messaging
+    %% =========================
+    subgraph Messaging["Messaging Layer"]
+        MQ[Message Queue\nKafka / SQS]
+    end
 
-** - Routing**
+    %% =========================
+    %% External Integrations
+    %% =========================
+    subgraph External["External Integrations"]
+        Stripe[Payment Gateway\nStripe / PayPal]
+        Email[Email Provider\nSES / SendGrid]
+        SMS[SMS Provider\nTwilio]
+    end
 
-** - Authentication & Rate Limiting**
+    %% =========================
+    %% Infrastructure
+    %% =========================
+    subgraph Infra["Infrastructure"]
+        K8s[Container Orchestration\nKubernetes / ECS]
+        Mesh[Service Mesh\n(Optional)]
+        IAM[IAM Roles]
+        KMS[Encryption\nKMS]
+    end
 
-**3. Microservices Layer:**
+    %% =========================
+    %% Monitoring & Logging
+    %% =========================
+    subgraph Observability["Monitoring & Logging"]
+        Metrics[CloudWatch / Prometheus]
+        Logs[Centralized Logs\nELK Stack]
+    end
 
-** - User Service (Signup, Login, Profile)**
+    %% =========================
+    %% Connections
+    %% =========================
+    Web --> CDN --> LB
+    Mobile --> LB
+    LB --> WAF --> APIGW
 
-** - Product Service (Catalog, Search, Inventory)**
+    APIGW --> UserSvc
+    APIGW --> ProductSvc
+    APIGW --> OrderSvc
+    APIGW --> ReviewSvc
+    APIGW --> AnalyticsSvc
 
-** - Order Service (Cart, Checkout, Payments)**
+    OrderSvc --> PaymentSvc
+    OrderSvc --> MQ
+    MQ --> NotifySvc
 
-** - Payment Service (Stripe/PayPal Integration)**
+    UserSvc --> UserDB
+    ProductSvc --> ProductDB
+    OrderSvc --> OrderDB
 
-** - Notification Service (Email/SMS)**
+    UserSvc --> Cache
+    ProductSvc --> Cache
+    OrderSvc --> Cache
 
-** - Review & Ratings Service**
+    ProductSvc --> ObjectStore
 
-** - Analytics Service**
+    PaymentSvc --> Stripe
+    NotifySvc --> Email
+    NotifySvc --> SMS
 
-**4. Databases:**
+    UserSvc -.-> Metrics
+    ProductSvc -.-> Metrics
+    OrderSvc -.-> Metrics
+    PaymentSvc -.-> Logs
 
-** - User DB (RDS/PostgreSQL)**
-
-** - Product DB (NoSQL – DynamoDB or MongoDB)**
-
-** - Order DB (SQL – MySQL/PostgreSQL)**
-
-** - Cache Layer (Redis)**
-
-**5. External Integrations:**
-
-** - Payment Gateway (Stripe/PayPal)**
-
-** - Email Provider (SES, SendGrid)**
-
-** - SMS Provider (Twilio)**
-
-**6. Infrastructure:**
-
-** - Load Balancer**
-
-** - API Gateway**
-
-** - Container Orchestration (Kubernetes/ECS)**
-
-** - Service Mesh (Optional)**
-
-** - Message Queue (Kafka/SQS)**
-
-** - CDN for static assets**
-
-** - Object Storage (AWS S3) for images**
-
-**7. Security Layer:**
-
-** - IAM Roles**
-
-** - JWT Authentication**
-
-** - WAF Firewall**
-
-** - Encryption (KMS)**
-
-**8. Monitoring & Logging:**
-
-** - CloudWatch / Prometheus / ELK**
-
-** - Centralized Log Storage**
-
+    APIGW --> IAM
+    K8s --> IAM
+    Data_Layer --> KMS
 ```
-
-
-
-
-
 ```mermaid
 erDiagram
 direction TB
