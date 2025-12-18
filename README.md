@@ -3,124 +3,124 @@
 # E-commerce web service
 # Use a professional style with clear labeled components, minimal colors, and cloud-native design.**
 
-```mermaid
 flowchart TB
-    %% =========================
-    %% Client Layer
-    %% =========================
-    subgraph Client_Layer["Client Layer"]
-        Web[Web Browser\n(React.js)]
-        Mobile[Mobile App\n(React Native)]
-    end
 
-    %% =========================
-    %% Edge & Access
-    %% =========================
-    subgraph Edge_Layer["Edge & Access Layer"]
-        CDN[CDN\nStatic Assets]
-        LB[Load Balancer]
-        APIGW[API Gateway\nRouting • Auth • Rate Limiting]
-        WAF[WAF Firewall]
-    end
+%% =========================
+%% Client Layer
+%% =========================
+subgraph Client_Layer["Client Layer"]
+Web[Web Browser (React.js)]
+Mobile[Mobile App (React Native)]
+end
 
-    %% =========================
-    %% Microservices Layer
-    %% =========================
-    subgraph Microservices["Microservices Layer"]
-        UserSvc[User Service\nSignup • Login • Profile]
-        ProductSvc[Product Service\nCatalog • Search • Inventory]
-        OrderSvc[Order Service\nCart • Checkout • Payments]
-        PaymentSvc[Payment Service\nStripe / PayPal]
-        NotifySvc[Notification Service\nEmail • SMS]
-        ReviewSvc[Review & Ratings Service]
-        AnalyticsSvc[Analytics Service]
-    end
+%% =========================
+%% Edge & Access Layer
+%% =========================
+subgraph Edge_Layer["Edge & Access Layer"]
+CDN[CDN - Static Assets]
+LB[Load Balancer]
+APIGW[API Gateway - Routing, Auth, Rate Limiting]
+WAF[WAF Firewall]
+end
 
-    %% =========================
-    %% Data Layer
-    %% =========================
-    subgraph Data_Layer["Data Layer"]
-        UserDB[(User DB\nPostgreSQL / RDS)]
-        ProductDB[(Product DB\nNoSQL)]
-        OrderDB[(Order DB\nMySQL / PostgreSQL)]
-        Cache[(Cache\nRedis)]
-        ObjectStore[(Object Storage\nAWS S3)]
-    end
+%% =========================
+%% Microservices Layer
+%% =========================
+subgraph Microservices["Microservices Layer"]
+UserSvc[User Service - Signup, Login, Profile]
+ProductSvc[Product Service - Catalog, Search, Inventory]
+OrderSvc[Order Service - Cart, Checkout, Payments]
+PaymentSvc[Payment Service - Stripe / PayPal]
+NotifySvc[Notification Service - Email, SMS]
+ReviewSvc[Review & Ratings Service]
+AnalyticsSvc[Analytics Service]
+end
 
-    %% =========================
-    %% Messaging
-    %% =========================
-    subgraph Messaging["Messaging Layer"]
-        MQ[Message Queue\nKafka / SQS]
-    end
+%% =========================
+%% Data Layer
+%% =========================
+subgraph Data_Layer["Data Layer"]
+UserDB[(User DB - PostgreSQL / RDS)]
+ProductDB[(Product DB - NoSQL)]
+OrderDB[(Order DB - MySQL / PostgreSQL)]
+Cache[(Cache - Redis)]
+ObjectStore[(Object Storage - AWS S3)]
+end
 
-    %% =========================
-    %% External Integrations
-    %% =========================
-    subgraph External["External Integrations"]
-        Stripe[Payment Gateway\nStripe / PayPal]
-        Email[Email Provider\nSES / SendGrid]
-        SMS[SMS Provider\nTwilio]
-    end
+%% =========================
+%% Messaging Layer
+%% =========================
+subgraph Messaging["Messaging Layer"]
+MQ[Message Queue - Kafka / SQS]
+end
 
-    %% =========================
-    %% Infrastructure
-    %% =========================
-    subgraph Infra["Infrastructure"]
-        K8s[Container Orchestration\nKubernetes / ECS]
-        Mesh[Service Mesh\n(Optional)]
-        IAM[IAM Roles]
-        KMS[Encryption\nKMS]
-    end
+%% =========================
+%% External Integrations
+%% =========================
+subgraph External["External Integrations"]
+Stripe[Payment Gateway - Stripe / PayPal]
+Email[Email Provider - SES / SendGrid]
+SMS[SMS Provider - Twilio]
+end
 
-    %% =========================
-    %% Monitoring & Logging
-    %% =========================
-    subgraph Observability["Monitoring & Logging"]
-        Metrics[CloudWatch / Prometheus]
-        Logs[Centralized Logs\nELK Stack]
-    end
+%% =========================
+%% Infrastructure
+%% =========================
+subgraph Infra["Infrastructure"]
+K8s[Container Orchestration - Kubernetes / ECS]
+Mesh[Service Mesh - Optional]
+IAM[IAM Roles]
+KMS[Encryption - KMS]
+end
 
-    %% =========================
-    %% Connections
-    %% =========================
-    Web --> CDN --> LB
-    Mobile --> LB
-    LB --> WAF --> APIGW
+%% =========================
+%% Monitoring & Logging
+%% =========================
+subgraph Observability["Monitoring & Logging"]
+Metrics[CloudWatch / Prometheus]
+Logs[Centralized Logs - ELK Stack]
+end
 
-    APIGW --> UserSvc
-    APIGW --> ProductSvc
-    APIGW --> OrderSvc
-    APIGW --> ReviewSvc
-    APIGW --> AnalyticsSvc
+%% =========================
+%% Connections
+%% =========================
+Web --> CDN --> LB
+Mobile --> LB
+LB --> WAF --> APIGW
 
-    OrderSvc --> PaymentSvc
-    OrderSvc --> MQ
-    MQ --> NotifySvc
+APIGW --> UserSvc
+APIGW --> ProductSvc
+APIGW --> OrderSvc
+APIGW --> ReviewSvc
+APIGW --> AnalyticsSvc
 
-    UserSvc --> UserDB
-    ProductSvc --> ProductDB
-    OrderSvc --> OrderDB
+OrderSvc --> PaymentSvc
+OrderSvc --> MQ
+MQ --> NotifySvc
 
-    UserSvc --> Cache
-    ProductSvc --> Cache
-    OrderSvc --> Cache
+UserSvc --> UserDB
+ProductSvc --> ProductDB
+OrderSvc --> OrderDB
 
-    ProductSvc --> ObjectStore
+UserSvc --> Cache
+ProductSvc --> Cache
+OrderSvc --> Cache
 
-    PaymentSvc --> Stripe
-    NotifySvc --> Email
-    NotifySvc --> SMS
+ProductSvc --> ObjectStore
 
-    UserSvc -.-> Metrics
-    ProductSvc -.-> Metrics
-    OrderSvc -.-> Metrics
-    PaymentSvc -.-> Logs
+PaymentSvc --> Stripe
+NotifySvc --> Email
+NotifySvc --> SMS
 
-    APIGW --> IAM
-    K8s --> IAM
-    Data_Layer --> KMS
-```
+APIGW --> IAM
+K8s --> IAM
+Data_Layer --> KMS
+
+UserSvc -.-> Metrics
+ProductSvc -.-> Metrics
+OrderSvc -.-> Metrics
+PaymentSvc -.-> Logs
+
 ```mermaid
 erDiagram
 direction TB
