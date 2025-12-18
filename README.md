@@ -1,9 +1,8 @@
 # user_service_apps
 
 # E-commerce web service
+# Use a professional style with clear labeled components, minimal colors, and cloud-native design.**
 
-```
-**Use a professional style with clear labeled components, minimal colors, and cloud-native design.**
 ```
 **Include the following layers and components:**
 
