@@ -11,11 +11,37 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
 import java.util.Collection;
- 
+/**
+ * JPA entity representing a role in the application's role-based access control (RBAC) system.
+ *
+ * This entity maps to the "roles" table and serves as an intermediary between users and
+ * their specific permissions (authorities). Roles group related authorities together to
+ * simplify permission management and user authorization.
+ *
+ * Relationships:
+ * - Many-to-Many with UserEntity: Multiple users can share the same role
+ * - Many-to-Many with AuthorityEntity: A role can contain multiple authorities/permissions
+ *
+ * Common role examples include: ROLE_USER, ROLE_ADMIN, ROLE_MODERATOR
+ *
+ * The role name is limited to 20 characters and should follow consistent naming conventions
+ * for proper authorization handling throughout the application.
+ *
+ * @author Nasim Sarwar
+ * @version 1.0
+ * @since 2025
+ */
 @Entity
 @Table(name="roles")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class RoleEntity implements Serializable {
 
 	private static final long serialVersionUID = 5605260522147928803L;
@@ -36,42 +62,6 @@ public class RoleEntity implements Serializable {
 			inverseJoinColumns=@JoinColumn(name="authorities_id",referencedColumnName="id"))
 	private Collection<AuthorityEntity> authorities;
  	
-	public RoleEntity() {}
-	
-	public RoleEntity(String name) {
-		 this.name = name;
-	}
 
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public Collection<UserEntity> getUsers() {
-		return users;
-	}
-
-	public void setUsers(Collection<UserEntity> users) {
-		this.users = users;
-	}
-
-	public Collection<AuthorityEntity> getAuthorities() {
-		return authorities;
-	}
-
-	public void setAuthorities(Collection<AuthorityEntity> authorities) {
-		this.authorities = authorities;
-	}
 
 }
