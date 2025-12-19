@@ -45,8 +45,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
+
     UserEntity findByEmail(String email);
     UserEntity findByUserId(String userId);
+    UserEntity findUserByEmailVerificationToken(String token);
+
+    /*UserEntity findByUserId(String userId);
     UserEntity findUserByEmailVerificationToken(String token);
 
     @Query(
@@ -87,6 +91,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     @Query("UPDATE UserEntity u SET u.emailVerificationStatus = :emailVerificationStatus WHERE u.userId = :userId")
     void updateUserEntityEmailVerificationStatus(
             @Param("emailVerificationStatus") boolean emailVerificationStatus,
-            @Param("userId") String userId);
+            @Param("userId") String userId);*/
 
 }

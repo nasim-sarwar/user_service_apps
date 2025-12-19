@@ -1,10 +1,32 @@
 package com.javadeveloperblogs.app.ws.service.impl;
 
+import com.javadeveloperblogs.app.ws.exception.UserServiceException;
+import com.javadeveloperblogs.app.ws.io.Repository.PasswordResetTokenRepository;
+import com.javadeveloperblogs.app.ws.io.Repository.RoleRepository;
+import com.javadeveloperblogs.app.ws.io.Repository.UserRepository;
+import com.javadeveloperblogs.app.ws.io.entity.PasswordResetTokenEntity;
 import com.javadeveloperblogs.app.ws.io.entity.UserEntity;
 import com.javadeveloperblogs.app.ws.service.UserService;
+import com.javadeveloperblogs.app.ws.shared.Utils;
+import com.javadeveloperblogs.app.ws.shared.dto.AddressDTO;
 import com.javadeveloperblogs.app.ws.shared.dto.UserDto;
+import com.javadeveloperblogs.app.ws.ui.model.request.MailRequest;
+import com.javadeveloperblogs.app.ws.ui.model.response.ErrorMessages;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.javadeveloperblogs.app.ws.io.entity.RoleEntity;
 
+import java.io.IOException;
+import java.util.*;
 import java.util.List;
 /**
  * Default implementation of the {@link UserService} interface.
@@ -66,86 +88,237 @@ import java.util.List;
  */
 @Service
 public class UserServiceImpl implements UserService{
-    /**
-     * @param user
-     * @return
-     */
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    Utils utils;
+
+    @Autowired
+    BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Autowired
+    PasswordResetTokenRepository passwordResetTokenRepository;
+
+
+
+    @Autowired
+    RoleRepository roleRepository;
+
+
     @Override
     public UserDto createUser(UserDto user) {
-        return null;
+
+        if (userRepository.findByEmail(user.getEmail()) != null)
+            throw new UserServiceException("Record already exists");
+
+        for(int i=0;i<user.getAddresses().size();i++)
+        {
+            AddressDTO address = user.getAddresses().get(i);
+            address.setUserDetails(user);
+            address.setAddressId(utils.generateAddressId(30));
+            user.getAddresses().set(i, address);
+        }
+
+        //BeanUtils.copyProperties(user, userEntity);
+        ModelMapper modelMapper = new ModelMapper();
+        UserEntity userEntity = modelMapper.map(user, UserEntity.class);
+
+        String publicUserId = utils.generateUserId(30);
+        userEntity.setUserId(publicUserId);
+        userEntity.setEncryptedPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        userEntity.setEmailVerificationToken(utils.generateEmailVerificationToken(publicUserId));
+
+        // Set roles
+        Collection<RoleEntity> roleEntities = new HashSet<>();
+        for(String role: user.getRoles()) {
+            RoleEntity roleEntity = roleRepository.findByName(role);
+            if(roleEntity !=null) {
+                roleEntities.add(roleEntity);
+            }
+        }
+
+        userEntity.setRoles(roleEntities);
+
+        UserEntity storedUserDetails = userRepository.save(userEntity);
+
+        //BeanUtils.copyProperties(storedUserDetails, returnValue);
+        UserDto returnValue  = modelMapper.map(storedUserDetails, UserDto.class);
+
+        // Send an email message to user to verify their email address
+        //amazonSES.verifyEmail(returnValue);
+
+        return returnValue;
     }
 
     /**
-     * @param email
-     * @return
+     * Get user by email
      */
     @Override
     public UserDto getUser(String email) {
-        return null;
+        UserEntity userEntity = userRepository.findByEmail(email);
+        return new ModelMapper().map(userEntity, UserDto.class);
     }
 
     /**
-     * @param userId
-     * @return
+     * Get user by userId
      */
     @Override
     public UserDto getUserByUserId(String userId) {
-        return null;
+        UserEntity userEntity = userRepository.findByUserId(userId);
+        return new ModelMapper().map(userEntity, UserDto.class);
     }
 
+
     /**
-     * @param userId
-     * @param user
-     * @return
+     * Update existing user's first name and last name
      */
     @Override
-    public UserDto updateUser(String userId, UserDto user) {
-        return null;
+    public UserDto updateUser(String userId, UserDto userDto) {
+        UserEntity userEntity = userRepository.findByUserId(userId);
+        if (userEntity == null)
+            throw new UserServiceException(ErrorMessages.NO_RECORD_FOUND.getErrorMessage());
+
+        userEntity.setFirstName(userDto.getFirstName());
+        userEntity.setLastName(userDto.getLastName());
+        UserEntity storedUserEntity = userRepository.save(userEntity);
+
+        return new ModelMapper().map(storedUserEntity, UserDto.class);
     }
 
+
     /**
-     * @param userId
+     * Delete a user by userId
      */
     @Override
     public void deleteUser(String userId) {
-
+        UserEntity userEntity = userRepository.findByUserId(userId);
+        userRepository.delete(userEntity);
     }
 
     /**
-     * @param page
-     * @param limit
-     * @return
+     * Get paginated list of users
      */
     @Override
     public List<UserDto> getUsers(int page, int limit) {
-        return List.of();
-    }
+        List<UserDto> returnValue = new ArrayList<>();
+        if (page > 0) page = page - 1;
 
+        Pageable pageableRequest = PageRequest.of(page, limit);
+        Page<UserEntity> usersPage = userRepository.findAll(pageableRequest);
+        List<UserEntity> users = usersPage.getContent();
+
+        for (UserEntity userEntity : users) {
+            UserDto userDto = new UserDto();
+            BeanUtils.copyProperties(userEntity, userDto);
+            returnValue.add(userDto);
+        }
+        return returnValue;
+    }
     /**
-     * @param token
-     * @return
+     * Verify email using token
      */
     @Override
     public boolean verifyEmailToken(String token) {
-        return false;
+        boolean returnValue = false;
+
+        // Find user by verification token
+        UserEntity userEntity = userRepository.findUserByEmailVerificationToken(token);
+        if (userEntity != null) {
+            boolean tokenExpired = Utils.hasTokenExpired(token);
+            if (!tokenExpired) {
+                userEntity.setEmailVerificationToken(null);
+                userEntity.setEmailVerificationStatus(Boolean.TRUE);
+                userRepository.save(userEntity);
+                returnValue = true;
+            }
+        }
+        return returnValue;
     }
 
+
     /**
-     * @param email
-     * @return
+     * Request password reset by generating token and sending email
      */
     @Override
     public boolean requestPasswordReset(String email) {
-        return false;
-    }
+        boolean returnValue = false;
 
+        UserEntity userEntity = userRepository.findByEmail(email);
+        if (userEntity == null) return returnValue;
+
+        // Generate token and save in DB
+        String token = utils.generatePasswordResetToken(userEntity.getUserId());
+        PasswordResetTokenEntity passwordResetTokenEntity = new PasswordResetTokenEntity();
+        passwordResetTokenEntity.setToken(token);
+        passwordResetTokenEntity.setUserDetails(userEntity);
+        passwordResetTokenRepository.save(passwordResetTokenEntity);
+
+        // Prepare email
+        MailRequest request = new MailRequest();
+        request.setFirstName(userEntity.getFirstName());
+        request.setLastName(userEntity.getLastName());
+        request.setTo(userEntity.getEmail());
+        request.setFrom("atoztraders39@gmail.com");
+        request.setSubject("PASSWORD RESET");
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("firstName", userEntity.getFirstName());
+        model.put("lastName", userEntity.getLastName());
+        model.put("location", "Bangalore,India");
+        model.put("TOKEN", token);
+
+        try {
+           /* Template t = config.getTemplate("password-reset-template.ftl");
+            service.sendEmail(request, model, t);
+            Template tem = config.getTemplate("email-template.ftl");
+            request.setSubject("Login_System");
+            service.sendEmail(request, model, tem);*/
+        } catch (Exception e) {
+            throw new RuntimeException("Mail Sending failure: " + e.getMessage());
+        }
+
+        return returnValue;
+    }
     /**
-     * @param token
-     * @param password
-     * @return
+     * Reset user password using token
      */
     @Override
     public boolean resetPassword(String token, String password) {
-        return false;
+        boolean returnValue = false;
+
+        if (Utils.hasTokenExpired(token)) return returnValue;
+
+        PasswordResetTokenEntity passwordResetTokenEntity = passwordResetTokenRepository.findByToken(token);
+        if (passwordResetTokenEntity == null) return returnValue;
+
+        String encodedPassword = bCryptPasswordEncoder.encode(password);
+        UserEntity userEntity = passwordResetTokenEntity.getUserDetails();
+        userEntity.setEncryptedPassword(encodedPassword);
+        UserEntity savedUserEntity = userRepository.save(userEntity);
+
+        if (savedUserEntity != null && savedUserEntity.getEncryptedPassword().equalsIgnoreCase(encodedPassword)) {
+            returnValue = true;
+        }
+
+        passwordResetTokenRepository.delete(passwordResetTokenEntity);
+
+        return returnValue;
+    }
+
+
+    /**
+     * Load user by username for Spring Security authentication
+     * @param username
+     * @return
+     * @throws UsernameNotFoundException
+     */
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        UserEntity userEntity = userRepository.findByEmail(username);
+        if (userEntity == null)
+            throw new UsernameNotFoundException("User does not exist");
+        return new User(username, userEntity.getEncryptedPassword(), new ArrayList<>());
     }
 }

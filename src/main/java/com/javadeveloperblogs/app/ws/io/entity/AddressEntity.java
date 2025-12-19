@@ -52,22 +52,22 @@ public class AddressEntity implements Serializable {
 	@GeneratedValue
 	private long id;
 
-	@Column(length=30, nullable=false)
+	@Column(length=30)
 	private String addressId;
 
-	@Column(length=15, nullable=false)
+	@Column(length=15)
 	private String city;
 
-	@Column(length=15, nullable=false)
+	@Column(length=15)
 	private String country;
 
-	@Column(length=100, nullable=false)
+	@Column(length=100)
 	private String streetName;
 
 	@Column(length=7, nullable=false)
 	private String postalCode;
 
-	@Column(length=10, nullable=false)
+	@Column(length=10)
 	private String type;
 
 	@ManyToOne

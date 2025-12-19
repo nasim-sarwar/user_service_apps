@@ -3,7 +3,7 @@ package com.javadeveloperblogs.app.ws.ui.model.response;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.hateoas.RepresentationModel;
+
 
 /**
  * REST response model representing address information with HATEOAS support.
@@ -55,7 +55,7 @@ import org.springframework.hateoas.RepresentationModel;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AddressesRest extends RepresentationModel<AddressesRest> {
+public class AddressesRest  {
 	private String addressId;
 	private String city;
 	private String country;

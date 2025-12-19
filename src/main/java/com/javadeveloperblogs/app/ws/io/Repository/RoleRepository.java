@@ -24,16 +24,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface RoleRepository extends CrudRepository<RoleEntity, Long> {
-
-	/**
-	 * Finds a role by its name.
-	 * <p>
-	 * This is a derived query method where Spring Data JPA automatically
-	 * generates the implementation based on the method name convention.
-	 * </p>
-	 *
-	 * @param name the name of the role to find
-	 * @return the RoleEntity with the specified name, or null if not found
-	 */
 	RoleEntity findByName(String name);
 }
